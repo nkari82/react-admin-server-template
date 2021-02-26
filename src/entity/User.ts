@@ -138,6 +138,7 @@ export class UserResolver {
       throw new Error('The id does not exist.');
     }
     user.username = username;
+	await user.save();
     return user;
   }
 
