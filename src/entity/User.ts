@@ -1,17 +1,29 @@
-import {Arg, Args, ArgsType, Field, ID, InputType, Int, ObjectType, Query, Resolver} from 'type-graphql';
+import {Arg, Args, ArgsType, Field, ID, InputType, Int, Mutation, ObjectType, Query, Resolver} from 'type-graphql';
 import {Entity, Column, PrimaryColumn, BeforeInsert, BaseEntity, PrimaryGeneratedColumn} from 'typeorm';
 import * as uuid from 'uuid';
 
 @ObjectType() // typegraphql
 @Entity('users') //typeorm
 export class User extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   @Field(() => ID)
   id: string;
 
   @Column()
   @Field()
   username: string;
+
+  @Column()
+  @Field()
+  password: string;
+
+  @Column()
+  uuid: string;
+
+  @BeforeInsert()
+  generateUUID() {
+    this.uuid = uuid.v4();
+  }
 }
 
 //
@@ -51,10 +63,10 @@ class ListMetadata {
   count: number;
 }
 
-@Resolver() // type graphql
+@Resolver() // typegraphql
 export class UserResolver {
   @Query(() => User) // return one
-  async User(@Arg('id') id: string) {
+  async User(@Arg('id', () => ID) id: string) {
     const user = await User.find({id: id});
     if (user === undefined) {
       throw Error(id);
@@ -87,8 +99,36 @@ export class UserResolver {
     return meta;
   }
 
-  @Query(() => String)
-  async Test(@Arg('id', {defaultValue: 'default'}) id: string) {
-    return id;
+  @Mutation(() => User)
+  async createUser(@Arg('id', () => ID) id: string, @Arg('username') username: string, @Arg('password') password: string) {
+    let user = await User.findOne(id);
+    if (user != undefined) {
+      throw new Error('This ID already exists.');
+    }
+    user = User.create({id: id, username: username, password: password});
+    await user.save();
+    return user;
+  }
+
+  // https://typegraphql.com/docs/0.17.0/resolvers.html
+  @Mutation(() => User)
+  async updateUser(@Arg('id', () => ID) id: string, @Arg('username') username: string) {
+    const user = await User.findOneOrFail({id: id});
+    if (user === undefined) {
+      throw new Error(id);
+    }
+    user.username = username;
+    return user;
+  }
+
+  @Mutation(() => User)
+  async deleteUser(@Arg('id', () => ID) id: string) {
+    const user = await User.findOneOrFail({id: id});
+    if (user === undefined) {
+      throw new Error(id);
+    }
+
+    await User.remove(user);
+    return user;
   }
 }
