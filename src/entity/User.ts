@@ -1,6 +1,12 @@
-import {Arg, Args, ArgsType, Field, ID, InputType, Int, Mutation, ObjectType, Query, Resolver} from 'type-graphql';
+import {Arg, Args, ArgsType, Authorized, Field, ID, InputType, Int, Mutation, ObjectType, Query, Resolver} from 'type-graphql';
 import {Entity, Column, PrimaryColumn, BeforeInsert, BaseEntity, PrimaryGeneratedColumn} from 'typeorm';
 import * as uuid from 'uuid';
+
+enum ROLE {
+  GUEST,
+  USER,
+  ADMIN,
+}
 
 @ObjectType() // typegraphql
 @Entity('users') //typeorm
@@ -19,6 +25,10 @@ export class User extends BaseEntity {
 
   @Column()
   uuid: string;
+
+  @Column('int')
+  @Field(() => Int)
+  role: ROLE;
 
   @BeforeInsert()
   generateUUID() {
@@ -63,8 +73,10 @@ class ListMetadata {
   count: number;
 }
 
+// https://typegraphql.com/docs/0.17.0/resolvers.html
 @Resolver() // typegraphql
 export class UserResolver {
+  @Authorized('ADMIN')
   @Query(() => User) // return one
   async User(@Arg('id', () => ID) id: string) {
     const user = await User.findOne({id: id});
@@ -74,6 +86,7 @@ export class UserResolver {
     return user;
   }
 
+  @Authorized('ADMIN')
   @Query(() => [User]) // return array
   async allUsers(
     @Arg('page', () => Int, {defaultValue: 0}) page: number, // 0
@@ -105,6 +118,7 @@ export class UserResolver {
     return meta;
   }
 
+  @Authorized('ADMIN')
   @Mutation(() => User)
   async createUser(@Arg('id', () => ID) id: string, @Arg('username') username: string, @Arg('password') password: string) {
     let user = await User.findOne(id);
@@ -116,7 +130,7 @@ export class UserResolver {
     return user;
   }
 
-  // https://typegraphql.com/docs/0.17.0/resolvers.html
+  @Authorized('ADMIN')
   @Mutation(() => User)
   async updateUser(@Arg('id', () => ID) id: string, @Arg('username') username: string) {
     const user = await User.findOne({id: id});
@@ -127,6 +141,7 @@ export class UserResolver {
     return user;
   }
 
+  @Authorized('ADMIN')
   @Mutation(() => User)
   async deleteUser(@Arg('id', () => ID) id: string) {
     const user = await User.findOne({id: id});
