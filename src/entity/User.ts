@@ -11,11 +11,11 @@ export class User extends BaseEntity {
 
   @Column()
   @Field()
-  username: string;
+  password: string;
 
   @Column()
   @Field()
-  password: string;
+  username: string;
 
   @Column()
   uuid: string;
@@ -67,22 +67,28 @@ class ListMetadata {
 export class UserResolver {
   @Query(() => User) // return one
   async User(@Arg('id', () => ID) id: string) {
-    const user = await User.find({id: id});
+    const user = await User.findOne({id: id});
     if (user === undefined) {
-      throw Error(id);
+      throw Error('The id does not exist.');
     }
     return user;
   }
 
   @Query(() => [User]) // return array
   async allUsers(
-    @Arg('page', () => Int, {defaultValue: 0}) page: number,
-    @Arg('perPage', () => Int, {defaultValue: 0}) perPage: number,
-    @Arg('sortField', {defaultValue: ''}) sortField: string,
-    @Arg('sortOrder', {defaultValue: ''}) sortOrder: string,
+    @Arg('page', () => Int, {defaultValue: 0}) page: number, // 0
+    @Arg('perPage', () => Int, {defaultValue: 0}) perPage: number, // 10
+    @Arg('sortField', {defaultValue: ''}) sortField: string, // id, username
+    @Arg('sortOrder', {defaultValue: ''}) sortOrder: 'ASC' | 'DESC', // ASC, DESC
     @Arg('userFilter', {defaultValue: new UserFilter()}) userFilter: UserFilter,
   ) {
-    return await User.find();
+    // https://github.com/typeorm/typeorm/blob/master/docs/select-query-builder.md
+    const users = await User.createQueryBuilder('user')
+      .orderBy(sortField, sortOrder)
+      .offset(page * perPage)
+      .limit(perPage)
+      .getMany();
+    return users;
   }
 
   @Query(() => ListMetadata) // return array
@@ -94,7 +100,7 @@ export class UserResolver {
     @Arg('userFilter', {defaultValue: new UserFilter()}) userFilter: UserFilter,
   ) {
     const meta = {
-      count: (await User.find()).length,
+      count: await User.count(),
     };
     return meta;
   }
@@ -113,9 +119,9 @@ export class UserResolver {
   // https://typegraphql.com/docs/0.17.0/resolvers.html
   @Mutation(() => User)
   async updateUser(@Arg('id', () => ID) id: string, @Arg('username') username: string) {
-    const user = await User.findOneOrFail({id: id});
+    const user = await User.findOne({id: id});
     if (user === undefined) {
-      throw new Error(id);
+      throw new Error('The id does not exist.');
     }
     user.username = username;
     return user;
@@ -123,12 +129,12 @@ export class UserResolver {
 
   @Mutation(() => User)
   async deleteUser(@Arg('id', () => ID) id: string) {
-    const user = await User.findOneOrFail({id: id});
+    const user = await User.findOne({id: id});
     if (user === undefined) {
-      throw new Error(id);
+      throw new Error('Deletion failed.');
     }
 
-    await User.remove(user);
+    await User.delete(user);
     return user;
   }
 }
