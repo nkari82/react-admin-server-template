@@ -1,5 +1,5 @@
-import {Arg, Args, ArgsType, Authorized, Field, ID, InputType, Int, Mutation, ObjectType, Query, Resolver} from 'type-graphql';
-import {Entity, Column, PrimaryColumn, BeforeInsert, BaseEntity, PrimaryGeneratedColumn} from 'typeorm';
+import {Arg, Authorized, Directive, Field, ID, InputType, Int, Mutation, ObjectType, Query, Resolver} from 'type-graphql';
+import {Entity, Column, PrimaryColumn, BeforeInsert, BaseEntity} from 'typeorm';
 import * as uuid from 'uuid';
 
 enum ROLE {
@@ -8,6 +8,7 @@ enum ROLE {
   ADMIN,
 }
 
+@Directive(`@key(fields: "id")`)
 @ObjectType() // typegraphql
 @Entity('users') //typeorm
 export class User extends BaseEntity {
@@ -74,7 +75,7 @@ class ListMetadata {
 }
 
 // https://typegraphql.com/docs/0.17.0/resolvers.html
-@Resolver() // typegraphql
+@Resolver(of => User) // typegraphql
 export class UserResolver {
   @Authorized('ADMIN')
   @Query(() => User) // return one
@@ -138,7 +139,7 @@ export class UserResolver {
       throw new Error('The id does not exist.');
     }
     user.username = username;
-	await user.save();
+    await user.save();
     return user;
   }
 
@@ -153,4 +154,10 @@ export class UserResolver {
     await User.delete(user);
     return user;
   }
+}
+
+export async function resolveUserReference(reference: Pick<User, 'id'>): Promise<User> {
+  const user = await User.findOne(reference.id);
+  if (user === undefined) throw new Error('undefined!');
+  return user;
 }
