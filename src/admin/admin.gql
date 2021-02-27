@@ -24,6 +24,8 @@ type Query {
   User(id: ID!): User!
   allUsers(userFilter: UserFilter = {}, sortOrder: String = "", sortField: String = "", perPage: Int = 0, page: Int = 0): [User!]!
   _allUsersMeta(userFilter: UserFilter = {}, sortOrder: String = "", sortField: String = "", perPage: Int = 0, page: Int = 0): ListMetadata!
+  login(role: Int = 0, password: String!, id: ID!): String!
+  hello(password: String!, id: ID!): String!
 }
 
 input UserFilter {

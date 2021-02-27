@@ -4,7 +4,7 @@ import jwt from 'express-jwt';
 import {AuthChecker} from 'type-graphql';
 import {createConnection} from 'typeorm';
 import {buildFederatedSchema} from '../helper/buildFederatedSchema';
-import {UserResolver, resolveUserReference, User} from '../entity/User';
+import {UserResolver, resolveUserReference, User, AccountResolver} from '../entity/User';
 
 const host = 'localhost';
 const port = 4001;
@@ -27,10 +27,10 @@ export async function listen(): Promise<string> {
   // we can set the authMode property of the buildSchema config object to "null":
   const schema = await buildFederatedSchema(
     {
-      resolvers: [UserResolver],
+      resolvers: [UserResolver, AccountResolver],
       orphanedTypes: [User],
-      authChecker: authChecker,
-      authMode: 'null',
+      //authChecker: authChecker,
+      //authMode: 'null',
       emitSchemaFile: {
         path: __dirname + '/admin.gql',
         commentDescriptions: true,
@@ -44,14 +44,14 @@ export async function listen(): Promise<string> {
 
   const server = new ApolloServer({
     schema,
-    context: (req: any) => {
-      const context = {
-        req,
-        user: req.user, // `req.user` comes from `express-jwt`
-      };
+    // context: (req: any) => {
+    //   const context = {
+    //     req,
+    //     user: req.user, // `req.user` comes from `express-jwt`
+    //   };
 
-      return context;
-    },
+    //   return context;
+    // },
   });
 
   const app = Express();

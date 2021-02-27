@@ -1,7 +1,9 @@
+import jwt from 'jsonwebtoken';
 import {Arg, Authorized, Directive, Field, ID, InputType, Int, Mutation, ObjectType, Query, Resolver} from 'type-graphql';
 import {Entity, Column, PrimaryColumn, BeforeInsert, BaseEntity} from 'typeorm';
 import * as uuid from 'uuid';
 
+// example simple role
 enum ROLE {
   GUEST,
   USER,
@@ -77,7 +79,7 @@ class ListMetadata {
 // https://typegraphql.com/docs/0.17.0/resolvers.html
 @Resolver(of => User) // typegraphql
 export class UserResolver {
-  @Authorized('ADMIN')
+  //@Authorized('ADMIN')
   @Query(() => User) // return one
   async User(@Arg('id', () => ID) id: string) {
     const user = await User.findOne({id: id});
@@ -87,7 +89,7 @@ export class UserResolver {
     return user;
   }
 
-  @Authorized('ADMIN')
+  //@Authorized('ADMIN')
   @Query(() => [User]) // return array
   async allUsers(
     @Arg('page', () => Int, {defaultValue: 0}) page: number, // 0
@@ -119,7 +121,7 @@ export class UserResolver {
     return meta;
   }
 
-  @Authorized('ADMIN')
+  //@Authorized('ADMIN')
   @Mutation(() => User)
   async createUser(@Arg('id', () => ID) id: string, @Arg('username') username: string, @Arg('password') password: string) {
     let user = await User.findOne(id);
@@ -131,7 +133,7 @@ export class UserResolver {
     return user;
   }
 
-  @Authorized('ADMIN')
+  //@Authorized('ADMIN')
   @Mutation(() => User)
   async updateUser(@Arg('id', () => ID) id: string, @Arg('username') username: string) {
     const user = await User.findOne({id: id});
@@ -143,7 +145,7 @@ export class UserResolver {
     return user;
   }
 
-  @Authorized('ADMIN')
+  //@Authorized('ADMIN')
   @Mutation(() => User)
   async deleteUser(@Arg('id', () => ID) id: string) {
     const user = await User.findOne({id: id});
@@ -153,6 +155,37 @@ export class UserResolver {
 
     await User.delete(user);
     return user;
+  }
+}
+
+@Resolver() // typegraphql
+export class AccountResolver {
+  // Auth server
+  // https://www.apollographql.com/blog/setting-up-authentication-and-authorization-with-apollo-federation/
+  @Query(() => String)
+  async login(@Arg('id', () => ID) id: string, @Arg('password') password: string, @Arg('role', () => Int, {defaultValue: 0}) role: number) {
+    const user = await User.findOne(id);
+    if (user === undefined) {
+      throw new Error('The id does not exist.');
+    }
+
+    if (user.role < role) {
+      throw new Error('You do not have access rights.');
+    }
+
+    if (user.id == id && user.password == password) {
+      return jwt.sign({'https://awesomeapi.com/graphql': user.role}, 'f1BtnWgD3VKY', {
+        algorithm: 'HS256',
+        subject: id,
+        expiresIn: '1d',
+      });
+    }
+    throw new Error('The ID or password was entered incorrectly.');
+  }
+
+  @Query(() => String)
+  async hello(@Arg('id', () => ID) id: string, @Arg('password') password: string) {
+    return 'Hello!';
   }
 }
 
