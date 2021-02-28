@@ -3,6 +3,7 @@ import {ApolloGateway} from '@apollo/gateway';
 import {ApolloServer} from 'apollo-server-express';
 import Express from 'express';
 import * as admin from './admin';
+import * as account from './account';
 
 const host = 'localhost';
 const port = 4000;
@@ -11,11 +12,16 @@ const main = async () => {
   const app = Express();
 
   const gateway = new ApolloGateway({
-    serviceList: [{name: 'admin', url: await admin.listen()}],
+    serviceList: [
+      {name: 'account', url: await account.listen()},
+      {name: 'admin', url: await admin.listen()},
+    ],
   });
 
+  const {schema, executor} = await gateway.load();
   const server = new ApolloServer({
-    gateway,
+    schema,
+    executor,
     tracing: false,
     playground: true,
     subscriptions: false,
