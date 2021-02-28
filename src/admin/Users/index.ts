@@ -1,5 +1,5 @@
-import {InputType, Field, ID, Int, ObjectType, Query, Arg, Mutation, Resolver, Directive} from 'type-graphql';
-import {User as BaseUser} from '../../entity/User';
+import {InputType, Field, ID, Int, ObjectType, Query, Arg, Mutation, Resolver, Directive, Authorized} from 'type-graphql';
+import {User as DB} from '../../entity/User';
 
 @Directive('@extends')
 @Directive(`@key(fields: "id")`)
@@ -8,6 +8,10 @@ class User {
   @Field(() => ID, {defaultValue: ''})
   @Directive('@external')
   id: string;
+
+  // @Field({defaultValue: ''})
+  // @Directive('@external')
+  // username: string;
 }
 
 @InputType()
@@ -49,17 +53,17 @@ class ListMetadata {
 // https://typegraphql.com/docs/0.17.0/resolvers.html
 @Resolver(of => User) // typegraphql
 export class UserResolver {
-  //@Authorized('ADMIN')
+  @Authorized('ADMIN')
   @Query(() => User) // return one
   async User(@Arg('id', () => ID) id: string) {
-    const user = (await BaseUser.findOne({id: id})) as User;
+    const user = (await DB.findOne({id: id})) as User;
     if (user === undefined) {
       throw Error('The id does not exist.');
     }
     return user;
   }
 
-  //@Authorized('ADMIN')
+  @Authorized('ADMIN')
   @Query(() => [User]) // return array
   async allUsers(
     @Arg('page', () => Int, {defaultValue: 0}) page: number, // 0
@@ -69,7 +73,7 @@ export class UserResolver {
     @Arg('userFilter', {defaultValue: new UserFilter()}) userFilter: UserFilter,
   ) {
     // https://github.com/typeorm/typeorm/blob/master/docs/select-query-builder.md
-    const users = await BaseUser.createQueryBuilder('user')
+    const users = await DB.createQueryBuilder('user')
       .orderBy(sortField, sortOrder)
       .offset(page * perPage)
       .limit(perPage)
@@ -86,27 +90,27 @@ export class UserResolver {
     @Arg('userFilter', {defaultValue: new UserFilter()}) userFilter: UserFilter,
   ) {
     const meta = {
-      count: await BaseUser.count(),
+      count: await DB.count(),
     };
     return meta;
   }
 
-  //@Authorized('ADMIN')
+  @Authorized('ADMIN')
   @Mutation(() => User)
   async createUser(@Arg('id', () => ID) id: string, @Arg('username') username: string, @Arg('password') password: string) {
-    let user = await BaseUser.findOne(id);
+    let user = await DB.findOne(id);
     if (user != undefined) {
       throw new Error('This ID already exists.');
     }
-    user = BaseUser.create({id: id, username: username, password: password});
+    user = DB.create({id: id, username: username, password: password});
     await user.save();
     return user;
   }
 
-  //@Authorized('ADMIN')
+  @Authorized('ADMIN')
   @Mutation(() => User)
   async updateUser(@Arg('id', () => ID) id: string, @Arg('username') username: string) {
-    const user = await BaseUser.findOne({id: id});
+    const user = await DB.findOne({id: id});
     if (user === undefined) {
       throw new Error('The id does not exist.');
     }
@@ -115,15 +119,15 @@ export class UserResolver {
     return user;
   }
 
-  //@Authorized('ADMIN')
+  @Authorized('ADMIN')
   @Mutation(() => User)
   async deleteUser(@Arg('id', () => ID) id: string) {
-    const user = await BaseUser.findOne({id: id});
+    const user = await DB.findOne({id: id});
     if (user === undefined) {
       throw new Error('Deletion failed.');
     }
 
-    await BaseUser.delete(user);
+    await DB.delete(user);
     return user;
   }
 }

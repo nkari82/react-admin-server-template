@@ -3,6 +3,8 @@ import Express from 'express';
 import {createConnection, getConnectionManager} from 'typeorm';
 import {buildFederatedSchema} from '../helper/buildFederatedSchema';
 import {UserResolver} from './Users';
+import {authChecker} from '../helper/authChecker';
+import expressJwt from 'express-jwt';
 
 const host = 'localhost';
 const port = 4001;
@@ -15,10 +17,18 @@ export async function listen(): Promise<string> {
       commentDescriptions: true,
       sortedSchema: false, // by default the printed schema is sorted alphabetically
     },
+    authChecker: authChecker,
   });
 
   const server = new ApolloServer({
     schema,
+    context: (res: any) => {
+      const token = res.req.headers?.authorization;
+      const context = {
+        auth: token,
+      };
+      return context;
+    },
   });
 
   const app = Express();

@@ -1,10 +1,12 @@
 import {ApolloServer} from 'apollo-server-express';
 import Express from 'express';
-import {Arg, Directive, ID, Query, Resolver} from 'type-graphql';
+import {Arg, AuthChecker, ID, Query, Resolver} from 'type-graphql';
 import {createConnection, getConnectionManager} from 'typeorm';
 import {buildFederatedSchema} from '../helper/buildFederatedSchema';
 import {User} from '../entity/User';
 import jwt from 'jsonwebtoken';
+import expressJwt from 'express-jwt';
+import {authChecker} from '../helper/authChecker';
 
 const host = 'localhost';
 const port = 4002;
@@ -17,7 +19,6 @@ export async function resolveUserReference(reference: Pick<User, 'id'>): Promise
 
 @Resolver(of => User) // typegraphql
 class AccountResolver {
-  // https://www.apollographql.com/blog/setting-up-authentication-and-authorization-with-apollo-federation/
   @Query(() => String)
   async login(@Arg('id', () => ID) id: string, @Arg('password') password: string) {
     const user = await User.findOne(id);
@@ -34,17 +35,6 @@ class AccountResolver {
     }
     throw new Error('The ID or password was entered incorrectly.');
   }
-
-  @Query(() => User)
-  async Test() {
-    const user = await User.findOne('1');
-    return user;
-  }
-
-  @Query(() => String)
-  async hello() {
-    return 'Hello!';
-  }
 }
 
 export async function listen(): Promise<string> {
@@ -57,6 +47,8 @@ export async function listen(): Promise<string> {
         commentDescriptions: true,
         sortedSchema: false, // by default the printed schema is sorted alphabetically
       },
+      authChecker: authChecker,
+      authMode: 'null',
     },
     {
       User: {__resolveReference: resolveUserReference},
@@ -68,7 +60,16 @@ export async function listen(): Promise<string> {
   });
 
   const app = Express();
-  server.applyMiddleware({app});
+  const path = '/graphql';
+  app.use(
+    path,
+    expressJwt({
+      algorithms: ['HS256'],
+      secret: 'f1BtnWgD3VKY',
+      credentialsRequired: false,
+    }),
+  );
+  server.applyMiddleware({app, path});
 
   const manager = getConnectionManager();
   if (!manager.has('default')) {
