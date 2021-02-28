@@ -1,9 +1,9 @@
 import {ApolloServer} from 'apollo-server-express';
 import Express from 'express';
 import {createConnection, getConnectionManager} from 'typeorm';
-import {buildFederatedSchema} from '../helper/buildFederatedSchema';
+import {buildFederatedSchema} from '../common/buildFederatedSchema';
 import {UserResolver} from './Users';
-import {authChecker} from '../helper/authChecker';
+import {authChecker} from '../common/authChecker';
 import expressJwt from 'express-jwt';
 
 const host = 'localhost';
@@ -22,6 +22,7 @@ export async function listen(): Promise<string> {
 
   const server = new ApolloServer({
     schema,
+    subscriptions: false,
     context: (res: any) => {
       const token = res.req.headers?.authorization;
       const context = {

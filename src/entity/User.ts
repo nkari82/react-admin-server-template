@@ -19,11 +19,11 @@ export class User extends BaseEntity {
 
   @Field({defaultValue: ''})
   @Column()
-  password: string;
+  username: string;
 
   @Field({defaultValue: ''})
   @Column()
-  username: string;
+  password: string;
 
   @Column()
   uuid: string;

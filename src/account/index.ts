@@ -2,11 +2,11 @@ import {ApolloServer} from 'apollo-server-express';
 import Express from 'express';
 import {Arg, AuthChecker, ID, Query, Resolver} from 'type-graphql';
 import {createConnection, getConnectionManager} from 'typeorm';
-import {buildFederatedSchema} from '../helper/buildFederatedSchema';
+import {buildFederatedSchema} from '../common/buildFederatedSchema';
 import {User} from '../entity/User';
 import jwt from 'jsonwebtoken';
 import expressJwt from 'express-jwt';
-import {authChecker} from '../helper/authChecker';
+import {authChecker} from '../common/authChecker';
 
 const host = 'localhost';
 const port = 4002;
@@ -57,19 +57,18 @@ export async function listen(): Promise<string> {
 
   const server = new ApolloServer({
     schema,
+    context: (res: any) => {
+      const token = res.req.headers?.authorization;
+      const context = {
+        auth: token,
+      };
+      return context;
+    },
   });
 
   const app = Express();
   const path = '/graphql';
-  app.use(
-    path,
-    expressJwt({
-      algorithms: ['HS256'],
-      secret: 'f1BtnWgD3VKY',
-      credentialsRequired: false,
-    }),
-  );
-  server.applyMiddleware({app, path});
+  server.applyMiddleware({app});
 
   const manager = getConnectionManager();
   if (!manager.has('default')) {

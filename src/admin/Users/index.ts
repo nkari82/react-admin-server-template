@@ -8,10 +8,6 @@ class User {
   @Field(() => ID, {defaultValue: ''})
   @Directive('@external')
   id: string;
-
-  // @Field({defaultValue: ''})
-  // @Directive('@external')
-  // username: string;
 }
 
 @InputType()
@@ -56,7 +52,7 @@ export class UserResolver {
   @Authorized('ADMIN')
   @Query(() => User) // return one
   async User(@Arg('id', () => ID) id: string) {
-    const user = (await DB.findOne({id: id})) as User;
+    const user = await DB.findOne({id: id});
     if (user === undefined) {
       throw Error('The id does not exist.');
     }
