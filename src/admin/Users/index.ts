@@ -5,7 +5,7 @@ import {User as BaseUser} from '../../entity/User';
 @Directive(`@key(fields: "id")`)
 @ObjectType('User') // typegraphql
 class User {
-  @Field(() => ID)
+  @Field(() => ID, {defaultValue: ''})
   @Directive('@external')
   id: string;
 }

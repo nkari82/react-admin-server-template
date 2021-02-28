@@ -11,7 +11,7 @@ const port = 4002;
 
 export async function resolveUserReference(reference: Pick<User, 'id'>): Promise<User> {
   const user = await User.findOne(reference.id);
-  if (user === undefined) throw new Error('The reference id does not exist.');
+  if (user === undefined) return new User(); // dummy
   return user;
 }
 

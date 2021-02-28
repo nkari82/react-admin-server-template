@@ -13,22 +13,22 @@ export enum ROLE {
 @ObjectType('User') // typegraphql
 @Entity('Users') //typeorm
 export class User extends BaseEntity {
-  @Field(() => ID)
+  @Field(() => ID, {defaultValue: ''})
   @PrimaryColumn()
   id: string;
 
-  @Field()
+  @Field({defaultValue: ''})
   @Column()
   password: string;
 
-  @Field()
+  @Field({defaultValue: ''})
   @Column()
   username: string;
 
   @Column()
   uuid: string;
 
-  @Field(() => Int)
+  @Field(() => Int, {defaultValue: 0})
   @Column('int', {default: 0})
   role: ROLE;
 
