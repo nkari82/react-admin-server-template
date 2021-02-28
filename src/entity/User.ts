@@ -11,7 +11,7 @@ enum ROLE {
 }
 
 @Directive(`@key(fields: "id")`)
-@ObjectType() // typegraphql
+@ObjectType('User') // typegraphql
 @Entity('users') //typeorm
 export class User extends BaseEntity {
   @PrimaryColumn()
@@ -169,12 +169,8 @@ export class AccountResolver {
       throw new Error('The id does not exist.');
     }
 
-    if (user.role < role) {
-      throw new Error('You do not have access rights.');
-    }
-
     if (user.id == id && user.password == password) {
-      return jwt.sign({'https://awesomeapi.com/graphql': user.role}, 'f1BtnWgD3VKY', {
+      return jwt.sign({role: user.role}, 'f1BtnWgD3VKY', {
         algorithm: 'HS256',
         subject: id,
         expiresIn: '1d',
