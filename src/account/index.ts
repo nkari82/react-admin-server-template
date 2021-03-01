@@ -1,11 +1,10 @@
 import {ApolloServer} from 'apollo-server-express';
 import Express from 'express';
-import {Arg, AuthChecker, ID, Query, Resolver} from 'type-graphql';
+import {Arg, ID, Query, Resolver} from 'type-graphql';
 import {createConnection, getConnectionManager} from 'typeorm';
 import {buildFederatedSchema} from '../common/buildFederatedSchema';
 import {User} from '../entity/User';
 import jwt from 'jsonwebtoken';
-import expressJwt from 'express-jwt';
 import {authChecker} from '../common/authChecker';
 
 const host = 'localhost';
@@ -67,7 +66,6 @@ export async function listen(): Promise<string> {
   });
 
   const app = Express();
-  const path = '/graphql';
   server.applyMiddleware({app});
 
   const manager = getConnectionManager();

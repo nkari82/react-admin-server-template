@@ -28,6 +28,7 @@ const main = async () => {
     },
   });
 
+  // Connect to the gateway port 4000 with the token that is the result of logging in to the 4002 port of the Account.
   const {schema, executor} = await gateway.load();
   const server = new ApolloServer({
     schema,
@@ -45,6 +46,13 @@ const main = async () => {
   });
 
   const app = Express();
+  app.use(
+    expressJwt({
+      secret: 'f1BtnWgD3VKY',
+      algorithms: ['HS256'],
+      credentialsRequired: false,
+    }),
+  );
   server.applyMiddleware({app});
 
   const url = `http://${host}:${port}${server.graphqlPath}`;

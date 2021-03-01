@@ -77,6 +77,7 @@ export class UserResolver {
     return users;
   }
 
+  @Authorized('ADMIN')
   @Query(() => ListMetadata) // return array
   async _allUsersMeta(
     @Arg('page', () => Int, {defaultValue: 0}) page: number,

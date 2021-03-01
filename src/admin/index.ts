@@ -4,7 +4,6 @@ import {createConnection, getConnectionManager} from 'typeorm';
 import {buildFederatedSchema} from '../common/buildFederatedSchema';
 import {UserResolver} from './Users';
 import {authChecker} from '../common/authChecker';
-import expressJwt from 'express-jwt';
 
 const host = 'localhost';
 const port = 4001;
