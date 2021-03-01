@@ -6,8 +6,8 @@ interface Context {
   auth?: any;
 }
 
-export const authChecker: AuthChecker<Context> = ({context: {auth}}, roles) => {
+export const authChecker: AuthChecker<Context, number> = ({context: {auth}}, roles) => {
   const decodedToken = decodeJwt(auth) as any;
-  if (decodedToken.role == ROLE.ADMIN && roles.includes('ADMIN')) return true;
+  if (decodedToken.role == ROLE.ADMIN && roles.includes(ROLE.ADMIN)) return true;
   return false;
 };

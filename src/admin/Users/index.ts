@@ -1,5 +1,5 @@
 import {InputType, Field, ID, Int, ObjectType, Query, Arg, Mutation, Resolver, Directive, Authorized} from 'type-graphql';
-import {User as DB} from '../../entity/User';
+import {User as DB, ROLE} from '../../entity/User';
 
 @Directive('@extends')
 @Directive(`@key(fields: "id")`)
@@ -49,7 +49,7 @@ class ListMetadata {
 // https://typegraphql.com/docs/0.17.0/resolvers.html
 @Resolver(of => User) // typegraphql
 export class UserResolver {
-  @Authorized('ADMIN')
+  @Authorized(ROLE.ADMIN)
   @Query(() => User) // return one
   async User(@Arg('id', () => ID) id: string) {
     const user = await DB.findOne({id: id});
@@ -59,7 +59,7 @@ export class UserResolver {
     return user;
   }
 
-  @Authorized('ADMIN')
+  @Authorized(ROLE.ADMIN)
   @Query(() => [User]) // return array
   async allUsers(
     @Arg('page', () => Int, {defaultValue: 0}) page: number, // 0
@@ -77,7 +77,7 @@ export class UserResolver {
     return users;
   }
 
-  @Authorized('ADMIN')
+  @Authorized(ROLE.ADMIN)
   @Query(() => ListMetadata) // return array
   async _allUsersMeta(
     @Arg('page', () => Int, {defaultValue: 0}) page: number,
@@ -92,7 +92,7 @@ export class UserResolver {
     return meta;
   }
 
-  @Authorized('ADMIN')
+  @Authorized(ROLE.ADMIN)
   @Mutation(() => User)
   async createUser(@Arg('id', () => ID) id: string, @Arg('username') username: string, @Arg('password') password: string) {
     let user = await DB.findOne(id);
@@ -104,7 +104,7 @@ export class UserResolver {
     return user;
   }
 
-  @Authorized('ADMIN')
+  @Authorized(ROLE.ADMIN)
   @Mutation(() => User)
   async updateUser(@Arg('id', () => ID) id: string, @Arg('username') username: string) {
     const user = await DB.findOne({id: id});
@@ -116,7 +116,7 @@ export class UserResolver {
     return user;
   }
 
-  @Authorized('ADMIN')
+  @Authorized(ROLE.ADMIN)
   @Mutation(() => User)
   async deleteUser(@Arg('id', () => ID) id: string) {
     const user = await DB.findOne({id: id});
