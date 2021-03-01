@@ -1,5 +1,5 @@
-import {Arg, Args, ArgsType, Field, ID, InputType, Int, Mutation, ObjectType, Query, Resolver} from 'type-graphql';
-import {Entity, Column, PrimaryColumn, BeforeInsert, BaseEntity, PrimaryGeneratedColumn} from 'typeorm';
+import {Arg, Field, ID, InputType, Int, Mutation, ObjectType, Query, Resolver} from 'type-graphql';
+import {Entity, Column, PrimaryColumn, BeforeInsert, BaseEntity} from 'typeorm';
 import * as uuid from 'uuid';
 
 @ObjectType() // typegraphql
@@ -124,7 +124,7 @@ export class UserResolver {
       throw new Error('The id does not exist.');
     }
     user.username = username;
-	await user.save();
+    await user.save();
     return user;
   }
 
