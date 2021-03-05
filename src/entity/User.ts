@@ -32,7 +32,7 @@ class UserFilter {
   @Field({defaultValue: ''})
   q: string;
 
-  @Field(() => ID)
+  @Field(() => ID, {defaultValue: ''})
   id: string;
 
   @Field({defaultValue: ''})
@@ -80,7 +80,7 @@ export class UserResolver {
     @Arg('perPage', () => Int, {defaultValue: 0}) perPage: number, // 10
     @Arg('sortField', {defaultValue: ''}) sortField: string, // id, username
     @Arg('sortOrder', {defaultValue: ''}) sortOrder: 'ASC' | 'DESC', // ASC, DESC
-    @Arg('userFilter', {defaultValue: new UserFilter()}) userFilter: UserFilter,
+    @Arg('filter', {defaultValue: null}) filter: UserFilter,
   ) {
     // https://github.com/typeorm/typeorm/blob/master/docs/select-query-builder.md
     const users = await User.createQueryBuilder('user')
@@ -97,7 +97,7 @@ export class UserResolver {
     @Arg('perPage', () => Int, {defaultValue: 0}) perPage: number,
     @Arg('sortField', {defaultValue: ''}) sortField: string,
     @Arg('sortOrder', {defaultValue: ''}) sortOrder: string,
-    @Arg('userFilter', {defaultValue: new UserFilter()}) userFilter: UserFilter,
+    @Arg('filter', {defaultValue: null}) filter: UserFilter,
   ) {
     const meta = {
       count: await User.count(),
